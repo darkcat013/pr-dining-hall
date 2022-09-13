@@ -21,3 +21,4 @@ go run .
 ```
 http://host.docker.internal:8081
 ```
+If it gives ECONNREFUSED (connection refused), the workaround is to find host.docker.internal in the hosts file and replace the ip attributed to it with 127.0.0.1
