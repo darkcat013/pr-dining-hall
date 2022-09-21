@@ -3,6 +3,7 @@ package domain
 import (
 	"bytes"
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -31,6 +32,7 @@ func (w *Waiter) Start() {
 		case order := <-NewOrderChan:
 			order.WaiterId = w.Id
 			order.PickUpTime = int(time.Now().Unix())
+			order.Priority = rand.Intn(5) + 1
 
 			utils.Log.Info("Created order", zap.Any("order", order))
 
@@ -49,6 +51,7 @@ func (w *Waiter) Start() {
 				utils.Log.Info("Response from kitchen", zap.Int("statusCode", resp.StatusCode), zap.Int("orderId", order.OrderId))
 			}
 		case distribution := <-w.ReceiveDistributionChan:
+			utils.Log.Info("Waiter received distribution", zap.Any("distribution", distribution))
 			Tables[distribution.TableId].ReceiveOrderChan <- distribution
 		}
 	}

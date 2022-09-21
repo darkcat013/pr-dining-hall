@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"math"
 	"math/rand"
 	"sync/atomic"
 
@@ -61,7 +62,7 @@ func (t *Table) newOrder() {
 		OrderId: int(atomic.AddInt64(&orderId, 1)),
 		TableId: t.Id,
 		Items:   items,
-		MaxWait: float64(maxPrepTime) * 1.3,
+		MaxWait: int(math.Ceil(float64(maxPrepTime) * 1.3)),
 	}
 
 	NewOrderChan <- order
