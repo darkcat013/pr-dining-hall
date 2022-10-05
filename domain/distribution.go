@@ -6,8 +6,8 @@ type Distribution struct {
 	WaiterId       int             `json:"waiter_id"`
 	Items          []int           `json:"items"`
 	Priority       int             `json:"priority"`
-	MaxWait        int             `json:"max_wait"`
-	PickUpTime     int             `json:"pick_up_time"`
-	CookingTime    int             `json:"cooking_time"`
+	MaxWait        float64         `json:"max_wait"`
+	PickUpTime     float64         `json:"pick_up_time"`
+	CookingTime    float64         `json:"cooking_time"`
 	CookingDetails []CookingDetail `json:"cooking_details"`
 }
