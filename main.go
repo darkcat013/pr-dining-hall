@@ -15,20 +15,19 @@ import (
 func main() {
 
 	utils.InitializeLogger()
-	//check if kitchen is open
 	rand.Seed(time.Now().UnixNano())
-	domain.InitializeMenu("config/menu.json")
+	domain.InitializeMenu(config.MENU_PATH)
+
+	go domain.StartRatingLogging()
 
 	for i := 0; i < config.TABLES; i++ {
 		table := domain.NewTable(i)
 		domain.Tables = append(domain.Tables, table)
-		go table.Start()
 	}
 
 	for i := 0; i < config.WAITERS; i++ {
 		waiter := domain.NewWaiter(i)
 		domain.Waiters = append(domain.Waiters, waiter)
-		go waiter.Start()
 	}
 
 	unhandledRoutes := func(w http.ResponseWriter, r *http.Request) {

@@ -2,13 +2,11 @@ package domain
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/darkcat013/pr-dining-hall/utils"
 )
-
-var Menu []Food
 
 func InitializeMenu(jsonPath string) {
 
@@ -18,7 +16,7 @@ func InitializeMenu(jsonPath string) {
 	}
 	defer file.Close()
 
-	bytes, _ := ioutil.ReadAll(file)
+	bytes, _ := io.ReadAll(file)
 	json.Unmarshal(bytes, &Menu)
 
 	if Menu == nil {
