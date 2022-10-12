@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"math/rand"
 	"net/http"
@@ -18,63 +19,47 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	domain.InitializeMenu(config.MENU_PATH)
 
+	RegisterRestaurant()
+
 	go domain.StartRatingLogging()
 
-	for i := 0; i < config.TABLES; i++ {
-		table := domain.NewTable(i)
-		domain.Tables = append(domain.Tables, table)
-	}
+	// for i := 0; i < config.TABLES; i++ {
+	// 	table := domain.NewTable(i)
+	// 	domain.Tables = append(domain.Tables, table)
+	// }
 
 	for i := 0; i < config.WAITERS; i++ {
 		waiter := domain.NewWaiter(i)
 		domain.Waiters = append(domain.Waiters, waiter)
 	}
 
-	unhandledRoutes := func(w http.ResponseWriter, r *http.Request) {
+	StartServer()
+}
 
-		utils.Log.Info("Requested",
-			zap.String("method", r.Method),
-			zap.String("endpoint", r.URL.String()),
-		)
+func RegisterRestaurant() {
 
-		utils.Log.Warn("Path not found", zap.Int("statusCode", http.StatusNotFound))
-		http.Error(w, "404 path not found.", http.StatusNotFound)
+	utils.Log.Info("Start registering restaurant", zap.Int("restaurantId", config.RESTAURANT_ID))
+	restaurantData := domain.RestaurantData{
+		RestaurantId: config.RESTAURANT_ID,
+		Name:         config.RESTAURANT_NAME,
+		Address:      config.ADDRESS,
+		MenuItems:    len(domain.Menu),
+		Menu:         domain.Menu,
+		Rating:       0,
 	}
 
-	distribution := func(w http.ResponseWriter, r *http.Request) {
-
-		utils.Log.Info("Requested",
-			zap.String("method", r.Method),
-			zap.String("endpoint", r.URL.String()),
-		)
-
-		if r.Method != "POST" {
-			utils.Log.Warn("Method not allowed", zap.Int("statusCode", http.StatusMethodNotAllowed))
-			http.Error(w, "405 method not allowed.", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var d domain.Distribution
-		err := json.NewDecoder(r.Body).Decode(&d)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			utils.Log.Fatal("Failed to decode distribution", zap.String("error", err.Error()))
-			return
-		}
-		utils.Log.Info("Distribution decoded", zap.Any("distribution", d))
-
-		domain.Waiters[d.WaiterId].ReceiveDistributionChan <- d
-
-		w.WriteHeader(http.StatusOK)
+	body, err := json.Marshal(restaurantData)
+	if err != nil {
+		utils.Log.Fatal("Failed to convert restaurant data to JSON ", zap.String("error", err.Error()), zap.Any("data", restaurantData))
 	}
 
-	http.HandleFunc("/", unhandledRoutes)
-	http.HandleFunc("/distribution", distribution)
+	utils.Log.Info("Send restaurant data to food ordring service", zap.Any("restaurantData", restaurantData))
 
-	utils.Log.Info("Started web server at port :8081")
+	resp, err := http.Post(config.FOOD_ORDERING_SERVICE_URL+"/register", "application/json", bytes.NewBuffer(body))
 
-	if err := http.ListenAndServe(":8081", nil); err != nil {
-		utils.Log.Fatal("Could not start web server", zap.String("error", err.Error()))
+	if err != nil {
+		utils.Log.Fatal("Failed to send restaurant data to food ordering service", zap.String("error", err.Error()), zap.Any("data", restaurantData))
+	} else {
+		utils.Log.Info("Response from food order service", zap.Int("statusCode", resp.StatusCode), zap.Int("restaurantId", config.RESTAURANT_ID))
 	}
 }

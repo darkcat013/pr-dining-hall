@@ -1,19 +1,11 @@
 # Dining hall
 
-Laboratory work nr1 on Network programming course.
+Laboratory work nr2 on Network programming course.
 
 ## Build and run application in docker
 
 ```bash
-docker build -t dining-hall .
-docker run -p 8081:8081 -it dining-hall
-```
-
-For Linux:
-
-```bash
-docker build -t dining-hall .
-docker run --add-host host.docker.internal:host-gateway -p 8081:8081 -it dining-hall
+docker compose up --build
 ```
 
 ## Run application locally
@@ -22,10 +14,22 @@ docker run --add-host host.docker.internal:host-gateway -p 8081:8081 -it dining-
 go run .
 ```
 
-## URL
+## URLs
 
-```bash
+```url
 http://host.docker.internal:8081
+http://host.docker.internal:8083
+http://host.docker.internal:8085
+http://host.docker.internal:8087
 ```
 
 If it gives ECONNREFUSED (connection refused), the workaround is to find host.docker.internal in the hosts file and replace the ip attributed to it with 127.0.0.1
+
+## Local URLs
+
+```url
+http://localhost:8081
+http://localhost:8083
+http://localhost:8085
+http://localhost:8087
+```

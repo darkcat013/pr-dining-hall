@@ -2,22 +2,20 @@ package config
 
 import "time"
 
-const KITCHEN_URL = "http://localhost:8080/order"
+// const KITCHEN_URL = "http://localhost:8086/order"
+const KITCHEN_URL = "http://host.docker.internal:8086/order"
 
-//const KITCHEN_URL = "http://host.docker.internal:8080/order"
+// const FOOD_ORDERING_SERVICE_URL = "http://localhost:8088"
+const FOOD_ORDERING_SERVICE_URL = "http://host.docker.internal:8088"
 
-const FOOD_ORDERING_SERVICE_URL = "http://localhost:8088"
-
-// const FOOD_ORDERING_SERVICE_URL = "http://host.docker.internal:8088"
-
-const PORT = "8081"
+const PORT = "8087"
 const LOGS_ENABLED = true
 
 const TIME_UNIT = time.Millisecond * TIME_UNIT_COEFF
 const TIME_UNIT_COEFF = 100
 
-const TABLES = 10
-const WAITERS = 4
+const TABLES = 6
+const WAITERS = 3
 
 const MENU_PATH = "config/menu.json"
 
@@ -33,8 +31,8 @@ const TABLE_PICKING_ORDER_TIME = 3
 const WAITER_TAKING_ORDER_TIME_MIN = 2
 const WAITER_TAKING_ORDER_TIME_MAX = 4
 
-const RESTAURANT_NAME = "Gamer food"
-const RESTAURANT_ID = 1
+const RESTAURANT_NAME = "Restaurant"
+const RESTAURANT_ID = 4
 
-// const ADDRESS = "http://localhost:8081"
-const ADDRESS = "http://host.docker.internal:8081"
+// const ADDRESS = "http://localhost:8087"
+const ADDRESS = "http://host.docker.internal:8087"

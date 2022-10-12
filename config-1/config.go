@@ -2,13 +2,11 @@ package config
 
 import "time"
 
-const KITCHEN_URL = "http://localhost:8080/order"
+// const KITCHEN_URL = "http://localhost:8080/order"
+const KITCHEN_URL = "http://host.docker.internal:8080/order"
 
-//const KITCHEN_URL = "http://host.docker.internal:8080/order"
-
-const FOOD_ORDERING_SERVICE_URL = "http://localhost:8088"
-
-// const FOOD_ORDERING_SERVICE_URL = "http://host.docker.internal:8088"
+// const FOOD_ORDERING_SERVICE_URL = "http://localhost:8088"
+const FOOD_ORDERING_SERVICE_URL = "http://host.docker.internal:8088"
 
 const PORT = "8081"
 const LOGS_ENABLED = true
@@ -16,8 +14,8 @@ const LOGS_ENABLED = true
 const TIME_UNIT = time.Millisecond * TIME_UNIT_COEFF
 const TIME_UNIT_COEFF = 100
 
-const TABLES = 10
-const WAITERS = 4
+const TABLES = 6
+const WAITERS = 3
 
 const MENU_PATH = "config/menu.json"
 

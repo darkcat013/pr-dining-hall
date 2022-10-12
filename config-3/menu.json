@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Aubergine",
+        "preparation-time": 20,
+        "complexity": 2,
+        "cooking-apparatus": "oven"
+    },
+    {
+        "id": 2,
+        "name": "Burger",
+        "preparation-time": 15,
+        "complexity": 1,
+        "cooking-apparatus": "stove"
+    },
+    {
+        "id": 3,
+        "name": "Gyros",
+        "preparation-time": 15,
+        "complexity": 1,
+        "cooking-apparatus": null
+    }
+]

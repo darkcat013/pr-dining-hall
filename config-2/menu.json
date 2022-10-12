@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Island Duck with Mulberry Mustard",
+        "preparation-time": 35,
+        "complexity": 3,
+        "cooking-apparatus": "oven"
+    },
+    {
+        "id": 2,
+        "name": "Waffles",
+        "preparation-time": 10,
+        "complexity": 1,
+        "cooking-apparatus": "stove"
+    },
+    {
+        "id": 3,
+        "name": "Unagi Maki",
+        "preparation-time": 20,
+        "complexity": 2,
+        "cooking-apparatus": null
+    }
+]
