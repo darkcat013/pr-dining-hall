@@ -49,7 +49,7 @@ func (w *Waiter) Start() {
 }
 
 func getSortedFoodsByPrepTime(items []int) []int {
-	foods := make([]*Food, len(items))
+	foods := make([]Food, len(items))
 	for i := 0; i < len(items); i++ {
 		foods[i] = Menu[items[i]-1]
 	}

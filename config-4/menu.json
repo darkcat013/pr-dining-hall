@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Lasagna",
+        "preparation-time": 30,
+        "complexity": 2,
+        "cooking-apparatus": "oven"
+    },
+    {
+        "id": 2,
+        "name": "Kebab",
+        "preparation-time": 15,
+        "complexity": 1,
+        "cooking-apparatus": null
+    },
+    {
+        "id": 3,
+        "name": "Tobacco Chicken",
+        "preparation-time": 30,
+        "complexity": 2,
+        "cooking-apparatus": "oven"
+    }
+]

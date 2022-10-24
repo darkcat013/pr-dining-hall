@@ -1,0 +1,33 @@
+services:
+  dining-hall-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: config-1
+    ports:
+      - "8081:8081"
+  dining-hall-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: config-2
+    ports:
+      - "8083:8083"
+  dining-hall-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: config-3
+    ports:
+      - "8085:8085"
+  dining-hall-4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        config: config-4
+    ports:
+      - "8087:8087"

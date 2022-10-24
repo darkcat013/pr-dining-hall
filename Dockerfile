@@ -1,8 +1,12 @@
 FROM golang:alpine
 
+ARG config
+
 RUN mkdir /app
 
-ADD . /app
+COPY . /app
+
+COPY ./${config}/ /app/config/
 
 WORKDIR /app
 

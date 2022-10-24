@@ -29,7 +29,7 @@ func NewTable(id int) *Table {
 		ReceiveOrderChan: make(chan Distribution),
 		State:            Free,
 	}
-	go table.Start()
+	// go table.Start()
 	return table
 }
 
@@ -57,14 +57,17 @@ func (t *Table) newOrder() {
 	foodsCount := rand.Intn(config.MAX_FOODS) + 1
 	var items []int
 	var maxPrepTime float64
+	probability := float64(100)
 
-	for i := 0; i < foodsCount; i++ {
+	for float64(rand.Intn(100)) <= probability && len(items) < foodsCount {
+
 		randomFood := Menu[rand.Intn(len(Menu))]
 		if maxPrepTime < randomFood.PreparationTime {
 			maxPrepTime = randomFood.PreparationTime
 		}
 
 		items = append(items, randomFood.Id)
+		probability /= 1.2
 	}
 	utils.Log.Info("Start creating order", zap.Int("tableId", t.Id))
 
