@@ -10,3 +10,5 @@ var OrderId int64
 var Waiters = make([]*Waiter, 0, config.WAITERS)
 
 var RegisteredTime float64
+
+var ReadyClientOrders map[int]*Distribution = make(map[int]*Distribution)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/darkcat013/pr-dining-hall/config"
+	configGlobal "github.com/darkcat013/pr-dining-hall/config-global"
 	"github.com/darkcat013/pr-dining-hall/domain"
 	"github.com/darkcat013/pr-dining-hall/utils"
 	"go.uber.org/zap"
@@ -23,10 +24,12 @@ func main() {
 
 	go domain.StartRatingLogging()
 
-	// for i := 0; i < config.TABLES; i++ {
-	// 	table := domain.NewTable(i)
-	// 	domain.Tables = append(domain.Tables, table)
-	// }
+	if configGlobal.TABLES_ENABLED {
+		for i := 0; i < config.TABLES; i++ {
+			table := domain.NewTable(i)
+			domain.Tables = append(domain.Tables, table)
+		}
+	}
 
 	for i := 0; i < config.WAITERS; i++ {
 		waiter := domain.NewWaiter(i)

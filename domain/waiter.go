@@ -29,6 +29,26 @@ func NewWaiter(id int) *Waiter {
 func (w *Waiter) Start() {
 	for {
 		select {
+		case order := <-ClientOrderChan:
+			utils.SleepBetween(config.WAITER_TAKING_ORDER_TIME_MIN, config.WAITER_TAKING_ORDER_TIME_MAX)
+
+			order.WaiterId = w.Id
+			order.PickUpTime = utils.GetCurrentTimeFloat()
+
+			utils.Log.Info("Food service order received by waiter", zap.Any("order", order), zap.Int("waiterId", w.Id))
+
+			go sendOrder(&order)
+
+			ReadyClientOrders[order.OrderId] = &Distribution{
+				OrderId:    order.OrderId,
+				TableId:    order.TableId,
+				WaiterId:   order.WaiterId,
+				Items:      order.Items,
+				Priority:   order.Priority,
+				MaxWait:    order.MaxWait,
+				PickUpTime: order.PickUpTime,
+			}
+
 		case order := <-NewOrderChan:
 			utils.SleepBetween(config.WAITER_TAKING_ORDER_TIME_MIN, config.WAITER_TAKING_ORDER_TIME_MAX)
 
@@ -42,8 +62,13 @@ func (w *Waiter) Start() {
 			go sendOrder(&order)
 
 		case distribution := <-w.ReceiveDistributionChan:
-			utils.Log.Info("Waiter received distribution", zap.Any("distribution", distribution))
-			Tables[distribution.TableId].ReceiveOrderChan <- distribution
+			if distribution.TableId == -1 {
+				utils.Log.Info("Waiter received client distribution", zap.Any("distribution", distribution))
+				ReadyClientOrders[distribution.OrderId] = &distribution
+			} else {
+				utils.Log.Info("Waiter received distribution", zap.Any("distribution", distribution))
+				Tables[distribution.TableId].ReceiveOrderChan <- distribution
+			}
 		}
 	}
 }
