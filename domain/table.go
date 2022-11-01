@@ -29,7 +29,7 @@ func NewTable(id int) *Table {
 		ReceiveOrderChan: make(chan Distribution),
 		State:            Free,
 	}
-	// go table.Start()
+	go table.Start()
 	return table
 }
 

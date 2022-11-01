@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/darkcat013/pr-dining-hall/config"
 	"github.com/darkcat013/pr-dining-hall/domain"
@@ -64,8 +66,8 @@ func StartServer() {
 			return
 		}
 
-		var o domain.FoodServiceOrder
-		err := json.NewDecoder(r.Body).Decode(&o)
+		var clientOrder domain.FoodServiceOrder
+		err := json.NewDecoder(r.Body).Decode(&clientOrder)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -73,13 +75,26 @@ func StartServer() {
 			return
 		}
 
-		utils.Log.Info("Food service order decoded", zap.Any("data", o))
+		utils.Log.Info("Food service order decoded", zap.Any("data", clientOrder))
 
-		var responseObj domain.FoodServiceOrderResponse
+		oId := atomic.AddInt64(&domain.OrderId, 1)
+		order := domain.Order{
+			OrderId:  int(oId),
+			TableId:  -1,
+			Items:    clientOrder.Items,
+			Priority: clientOrder.Priority,
+			MaxWait:  clientOrder.MaxWait,
+		}
 
-		responseObj = domain.FoodServiceOrderResponse{
+		utils.Log.Info("Food service order converted to order", zap.Any("clientOrder", clientOrder), zap.Any("order", order))
+
+		domain.ClientOrderChan <- order
+
+		utils.Log.Info("Food service order sent to waiters", zap.Any("data", order))
+
+		responseObj := domain.FoodServiceOrderResponse{
 			RestaurantId:         config.RESTAURANT_ID,
-			OrderId:              0,
+			OrderId:              int(oId),
 			EstimatedWaitingTime: 0,
 			CreatedTime:          utils.GetCurrentTimeFloat(),
 			RegisteredTime:       domain.RegisteredTime,
@@ -107,9 +122,51 @@ func StartServer() {
 
 		switch r.Method {
 		case "GET":
-			utils.Log.Info("V2 order GET " + orderId)
-			w.WriteHeader(http.StatusOK)
-			return
+			oId, err := strconv.Atoi(orderId)
+
+			if err != nil {
+				utils.Log.Fatal("Failed to convert orderId to int ", zap.String("error", err.Error()), zap.String("orderId", orderId))
+			}
+
+			utils.Log.Info("V2 order GET", zap.Int("orderId", oId))
+
+			order := domain.ReadyClientOrders[oId]
+			var responseObj domain.DistributionClient
+			if order.CookingDetails == nil {
+				responseObj = domain.DistributionClient{
+					OrderId:              order.OrderId,
+					IsReady:              false,
+					EstimatedWaitingTime: 10,
+					Priority:             order.Priority,
+					MaxWait:              order.MaxWait,
+					CreatedTime:          order.PickUpTime,
+					RegisteredTime:       domain.RegisteredTime,
+				}
+			} else {
+				responseObj = domain.DistributionClient{
+					OrderId:              order.OrderId,
+					IsReady:              true,
+					EstimatedWaitingTime: 0,
+					Priority:             order.Priority,
+					MaxWait:              order.MaxWait,
+					CreatedTime:          order.PickUpTime,
+					RegisteredTime:       domain.RegisteredTime,
+					PreparedTime:         utils.GetCurrentTimeFloat(),
+					CookingTime:          order.CookingTime,
+					CookingDetails:       order.CookingDetails,
+				}
+			}
+
+			response, err := json.Marshal(responseObj)
+
+			if err != nil {
+				utils.Log.Fatal("Failed to convert distribution to JSON for client", zap.String("error", err.Error()), zap.Any("distribution", responseObj))
+			}
+
+			utils.Log.Info("Converted distribution to JSON for client", zap.String("error", err.Error()), zap.Any("distribution", responseObj))
+
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(response)
 		default:
 			utils.Log.Warn("Method not allowed", zap.Int("statusCode", http.StatusMethodNotAllowed))
 			http.Error(w, "405 method not allowed.", http.StatusMethodNotAllowed)
