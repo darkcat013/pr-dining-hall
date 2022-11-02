@@ -92,13 +92,25 @@ func StartServer() {
 
 		utils.Log.Info("Food service order sent to waiters", zap.Any("data", order))
 
+		var prepTimeNoApparatus, prepTimeWithApparatus float64
+		for i := 0; i < len(order.Items); i++ {
+			var menuItem = domain.Menu[order.Items[i]-1]
+			if menuItem.CookingApparatus != "" {
+				prepTimeNoApparatus += menuItem.PreparationTime
+			} else {
+				prepTimeWithApparatus += menuItem.PreparationTime
+			}
+		}
+
+		domain.KitchenOverloadMutex.Lock()
 		responseObj := domain.FoodServiceOrderResponse{
 			RestaurantId:         config.RESTAURANT_ID,
 			OrderId:              int(oId),
-			EstimatedWaitingTime: 0,
-			CreatedTime:          utils.GetCurrentTimeFloat(),
-			RegisteredTime:       domain.RegisteredTime,
+			EstimatedWaitingTime: clientOrder.MaxWait + utils.GetEstimatedPreparationTime(prepTimeNoApparatus, config.COOK_PROEFFICIENCY_SUM, prepTimeWithApparatus, config.COOKING_APPARATUS_AMOUNT, float64(domain.CurrentFoodAmount), float64(len(order.Items))),
+			CreatedTime:          clientOrder.CreatedTime,
+			RegisteredTime:       utils.GetCurrentTimeFloat(),
 		}
+		domain.KitchenOverloadMutex.Unlock()
 
 		response, err := json.Marshal(responseObj)
 
@@ -129,7 +141,7 @@ func StartServer() {
 			}
 
 			utils.Log.Info("V2 order GET", zap.Int("orderId", oId))
-
+			utils.Log.Info("ready", zap.Any("obj", domain.ReadyClientOrders))
 			order := domain.ReadyClientOrders[oId]
 			var responseObj domain.DistributionClient
 			if order.CookingDetails == nil {
@@ -163,8 +175,11 @@ func StartServer() {
 				utils.Log.Fatal("Failed to convert distribution to JSON for client", zap.String("error", err.Error()), zap.Any("distribution", responseObj))
 			}
 
-			utils.Log.Info("Converted distribution to JSON for client", zap.String("error", err.Error()), zap.Any("distribution", responseObj))
+			utils.Log.Info("Converted distribution to JSON for client", zap.Any("distribution", responseObj))
 
+			if responseObj.IsReady {
+				delete(domain.ReadyClientOrders, oId)
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		default:
@@ -183,9 +198,37 @@ func StartServer() {
 
 		switch r.Method {
 		case "POST":
-			utils.Log.Info("V2 rating POST")
-			w.WriteHeader(http.StatusOK)
-			return
+
+			var clientRating domain.RestaurantPayloadRating
+			err := json.NewDecoder(r.Body).Decode(&clientRating)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				utils.Log.Fatal("Failed to client rating from food order service", zap.String("error", err.Error()))
+				return
+			}
+
+			utils.Log.Info("Client rating decoded", zap.Any("data", clientRating))
+
+			domain.ClientRatingChan <- clientRating.Rating
+
+			utils.Log.Info("Rating calculated", zap.Any("data", clientRating))
+
+			responseObj := domain.RestaurantResponseRating{
+				RestaurantId:        config.RESTAURANT_ID,
+				RestaurantAvgRating: domain.AvgRating,
+				PreparedOrders:      int(atomic.LoadInt64(&domain.CompletedOrders)),
+			}
+
+			response, err := json.Marshal(responseObj)
+
+			if err != nil {
+				utils.Log.Fatal("Failed to convert response rating JSON ", zap.String("error", err.Error()), zap.Any("responseOrder", responseObj))
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(response)
+
 		default:
 			utils.Log.Warn("Method not allowed", zap.Int("statusCode", http.StatusMethodNotAllowed))
 			http.Error(w, "405 method not allowed.", http.StatusMethodNotAllowed)

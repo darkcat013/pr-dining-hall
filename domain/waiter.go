@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"sort"
+	"sync/atomic"
 
 	"github.com/darkcat013/pr-dining-hall/config"
 	"github.com/darkcat013/pr-dining-hall/utils"
@@ -37,6 +38,10 @@ func (w *Waiter) Start() {
 	for {
 		select {
 		case order := <-ClientOrderChan:
+			KitchenOverloadMutex.Lock()
+			CurrentOrders++
+			KitchenOverloadMutex.Unlock()
+
 			utils.SleepBetween(config.WAITER_TAKING_ORDER_TIME_MIN, config.WAITER_TAKING_ORDER_TIME_MAX)
 
 			order.WaiterId = w.Id
@@ -46,7 +51,7 @@ func (w *Waiter) Start() {
 
 			go sendOrder(&order)
 
-			ReadyClientOrders[order.OrderId] = &Distribution{
+			ReadyClientOrders[order.OrderId] = Distribution{
 				OrderId:    order.OrderId,
 				TableId:    order.TableId,
 				WaiterId:   order.WaiterId,
@@ -55,6 +60,7 @@ func (w *Waiter) Start() {
 				MaxWait:    order.MaxWait,
 				PickUpTime: order.PickUpTime,
 			}
+			utils.Log.Info("ready", zap.Any("obj", ReadyClientOrders))
 
 		case order := <-NewOrderChan:
 			utils.SleepBetween(config.WAITER_TAKING_ORDER_TIME_MIN, config.WAITER_TAKING_ORDER_TIME_MAX)
@@ -71,11 +77,12 @@ func (w *Waiter) Start() {
 		case distribution := <-w.ReceiveDistributionChan:
 			if distribution.TableId == -1 {
 				utils.Log.Info("Waiter received client distribution", zap.Any("distribution", distribution))
-				ReadyClientOrders[distribution.OrderId] = &distribution
+				ReadyClientOrders[distribution.OrderId] = distribution
 			} else {
 				utils.Log.Info("Waiter received distribution", zap.Any("distribution", distribution))
 				Tables[distribution.TableId].ReceiveOrderChan <- distribution
 			}
+			atomic.AddInt64(&CompletedOrders, 1)
 		}
 	}
 }

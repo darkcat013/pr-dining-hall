@@ -68,6 +68,7 @@ func (t *Table) Start() {
 			RatingChan <- d
 			KitchenOverloadMutex.Lock()
 			CurrentOrders--
+			CurrentFoodAmount -= len(d.Items)
 			KitchenOverloadMutex.Unlock()
 			utils.SleepOneOf(config.TABLE_PICKING_ORDER_TIME, int(d.MaxWait))
 			t.State = Free
@@ -98,6 +99,7 @@ func (t *Table) newOrder() {
 	if len(items) >= config.MAX_FOODS/2 && CurrentMaxOrders > 2 {
 		CurrentMaxOrders--
 	}
+	CurrentFoodAmount += len(items)
 	KitchenOverloadMutex.Unlock()
 	utils.Log.Info("Start creating order", zap.Int("tableId", t.Id))
 

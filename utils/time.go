@@ -22,3 +22,7 @@ func GetCurrentTimeFloat() float64 {
 		return float64(time.Now().Unix())
 	}
 }
+
+func GetEstimatedPreparationTime(A, B, C, D, E, F float64) float64 {
+	return (A/B + C/D) * (E + F) / F
+}
