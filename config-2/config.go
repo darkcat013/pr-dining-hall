@@ -19,11 +19,11 @@ const WAITERS = 3
 
 const MENU_PATH = "config/menu.json"
 
-const MAX_FOODS = 10
+const MAX_FOODS = 6
 const MAX_PREP_TIME_COEFF = 1.3
 
-const TABLE_OCCUPATION_TIME_MIN = 10
-const TABLE_OCCUPATION_TIME_MAX = 20
+const TABLE_OCCUPATION_TIME_MIN = 15
+const TABLE_OCCUPATION_TIME_MAX = 30
 const TABLE_ORDERING_TIME_MIN = 5
 const TABLE_ORDERING_TIME_MAX = 10
 const TABLE_PICKING_ORDER_TIME = 3
@@ -36,3 +36,6 @@ const RESTAURANT_ID = 2
 
 // const ADDRESS = "http://localhost:8083"
 const ADDRESS = "http://host.docker.internal:8083"
+
+const COOK_PROEFFICIENCY_SUM = 11
+const COOKING_APPARATUS_AMOUNT = 2

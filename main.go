@@ -22,7 +22,7 @@ func main() {
 	go domain.StartRatingLogging()
 	domain.InitializeWaiters()
 	go domain.InitializeTables()
-	// go RegisterRestaurant()
+	go RegisterRestaurant()
 
 	StartServer()
 }

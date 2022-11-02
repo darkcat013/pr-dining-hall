@@ -15,9 +15,10 @@ var Waiters = make([]*Waiter, 0, config.WAITERS)
 
 var RegisteredTime float64
 
-var ReadyClientOrders map[int]*Distribution = make(map[int]*Distribution)
+var ReadyClientOrders = make(map[int]Distribution)
 
 var KitchenOverloadMutex sync.Mutex
 var CurrentOrders = 0
 var CurrentMaxOrders = config.TABLES
 var KitchenOverloaded = false
+var CurrentFoodAmount = 0

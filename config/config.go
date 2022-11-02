@@ -39,3 +39,6 @@ const RESTAURANT_ID = 1
 const ADDRESS = "http://localhost:8081"
 
 // const ADDRESS = "http://host.docker.internal:8081"
+
+const COOK_PROEFFICIENCY_SUM = 11
+const COOKING_APPARATUS_AMOUNT = 3
