@@ -24,8 +24,8 @@ const MENU_PATH = "config/menu.json"
 const MAX_FOODS = 10
 const MAX_PREP_TIME_COEFF = 1.3
 
-const TABLE_OCCUPATION_TIME_MIN = 10
-const TABLE_OCCUPATION_TIME_MAX = 20
+const TABLE_OCCUPATION_TIME_MIN = 15
+const TABLE_OCCUPATION_TIME_MAX = 30
 const TABLE_ORDERING_TIME_MIN = 5
 const TABLE_ORDERING_TIME_MAX = 10
 const TABLE_PICKING_ORDER_TIME = 3
@@ -36,5 +36,6 @@ const WAITER_TAKING_ORDER_TIME_MAX = 4
 const RESTAURANT_NAME = "Gamer food"
 const RESTAURANT_ID = 1
 
-// const ADDRESS = "http://localhost:8081"
-const ADDRESS = "http://host.docker.internal:8081"
+const ADDRESS = "http://localhost:8081"
+
+// const ADDRESS = "http://host.docker.internal:8081"

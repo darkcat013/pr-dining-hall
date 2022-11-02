@@ -17,6 +17,13 @@ type Waiter struct {
 	ReceiveDistributionChan chan Distribution
 }
 
+func InitializeWaiters() {
+	for i := 0; i < config.WAITERS; i++ {
+		waiter := NewWaiter(i)
+		Waiters = append(Waiters, waiter)
+	}
+}
+
 func NewWaiter(id int) *Waiter {
 	waiter := &Waiter{
 		Id:                      id,

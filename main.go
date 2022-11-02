@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/darkcat013/pr-dining-hall/config"
-	configGlobal "github.com/darkcat013/pr-dining-hall/config-global"
 	"github.com/darkcat013/pr-dining-hall/domain"
 	"github.com/darkcat013/pr-dining-hall/utils"
 	"go.uber.org/zap"
@@ -20,21 +19,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	domain.InitializeMenu(config.MENU_PATH)
 
-	RegisterRestaurant()
-
 	go domain.StartRatingLogging()
-
-	if configGlobal.TABLES_ENABLED {
-		for i := 0; i < config.TABLES; i++ {
-			table := domain.NewTable(i)
-			domain.Tables = append(domain.Tables, table)
-		}
-	}
-
-	for i := 0; i < config.WAITERS; i++ {
-		waiter := domain.NewWaiter(i)
-		domain.Waiters = append(domain.Waiters, waiter)
-	}
+	domain.InitializeWaiters()
+	go domain.InitializeTables()
+	// go RegisterRestaurant()
 
 	StartServer()
 }
@@ -48,7 +36,7 @@ func RegisterRestaurant() {
 		Address:      config.ADDRESS,
 		MenuItems:    len(domain.Menu),
 		Menu:         domain.Menu,
-		Rating:       0,
+		Rating:       domain.AvgRating,
 	}
 
 	body, err := json.Marshal(restaurantData)
