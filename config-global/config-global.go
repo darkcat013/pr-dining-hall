@@ -1,3 +1,3 @@
 package configGlobal
 
-const TABLES_ENABLED = false
+const TABLES_ENABLED = true

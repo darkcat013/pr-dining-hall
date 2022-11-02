@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/darkcat013/pr-dining-hall/config"
+	configGlobal "github.com/darkcat013/pr-dining-hall/config-global"
 	"github.com/darkcat013/pr-dining-hall/utils"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,16 @@ type Table struct {
 	State            TableState
 }
 
+func InitializeTables() {
+	if configGlobal.TABLES_ENABLED {
+		for i := 0; i < config.TABLES; i++ {
+			table := NewTable(i)
+			Tables = append(Tables, table)
+			utils.SleepBetween(config.TABLE_OCCUPATION_TIME_MIN, config.TABLE_OCCUPATION_TIME_MAX)
+		}
+	}
+}
+
 func NewTable(id int) *Table {
 	table := &Table{
 		Id:               id,
@@ -37,7 +48,16 @@ func (t *Table) Start() {
 	for {
 		if t.State == Free {
 			utils.SleepBetween(config.TABLE_OCCUPATION_TIME_MIN, config.TABLE_OCCUPATION_TIME_MAX)
-			t.State = MakingOrder
+			KitchenOverloadMutex.Lock()
+			if CurrentOrders == 0 {
+				CurrentMaxOrders++
+				CurrentOrders++
+				t.State = MakingOrder
+			} else if CurrentOrders < CurrentMaxOrders {
+				t.State = MakingOrder
+				CurrentOrders++
+			}
+			KitchenOverloadMutex.Unlock()
 		} else if t.State == MakingOrder {
 			utils.SleepBetween(config.TABLE_ORDERING_TIME_MIN, config.TABLE_ORDERING_TIME_MAX)
 			t.newOrder()
@@ -46,6 +66,9 @@ func (t *Table) Start() {
 			d := <-t.ReceiveOrderChan
 			utils.Log.Info("Table received distribution", zap.Int("tableId", t.Id), zap.Int("orderId", d.OrderId))
 			RatingChan <- d
+			KitchenOverloadMutex.Lock()
+			CurrentOrders--
+			KitchenOverloadMutex.Unlock()
 			utils.SleepOneOf(config.TABLE_PICKING_ORDER_TIME, int(d.MaxWait))
 			t.State = Free
 		}
@@ -57,18 +80,25 @@ func (t *Table) newOrder() {
 	foodsCount := rand.Intn(config.MAX_FOODS) + 1
 	var items []int
 	var maxPrepTime float64
-	probability := float64(100)
 
-	for float64(rand.Intn(100)) <= probability && len(items) < foodsCount {
+	KitchenOverloadMutex.Lock()
 
+	for i := 0; i < foodsCount; i++ {
 		randomFood := Menu[rand.Intn(len(Menu))]
+		if randomFood.CookingApparatus != "" && rand.Intn(4) > 0 {
+			i--
+			continue
+		}
 		if maxPrepTime < randomFood.PreparationTime {
 			maxPrepTime = randomFood.PreparationTime
 		}
 
 		items = append(items, randomFood.Id)
-		probability /= 1.2
 	}
+	if len(items) >= config.MAX_FOODS/2 && CurrentMaxOrders > 2 {
+		CurrentMaxOrders--
+	}
+	KitchenOverloadMutex.Unlock()
 	utils.Log.Info("Start creating order", zap.Int("tableId", t.Id))
 
 	order := Order{
